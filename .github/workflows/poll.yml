@@ -1,5 +1,8 @@
 name: poll
 on:
+  push:
+    branches: [master]
+    paths-ignore: ["seen.json", "listings.csv"]  # don't re-trigger on state commits
   schedule:
     - cron: "*/15 * * * *"   # every 15 min — free & unlimited on a public repo
   workflow_dispatch: {}       # lets you run it manually from the Actions tab
