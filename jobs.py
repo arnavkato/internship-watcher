@@ -24,14 +24,19 @@ def load_config():
         return tomllib.load(f)
 
 
+# Discord's Cloudflare 403s the default "Python-urllib" UA, so set our own.
+UA = "internship-watcher (https://github.com/arnavkato/internship-watcher, 1.0)"
+
+
 def get_json(url):
-    with urllib.request.urlopen(url, timeout=45) as r:
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=45) as r:
         return json.load(r)
 
 
 def post_json(url, payload):
     req = urllib.request.Request(url, data=json.dumps(payload).encode(),
-                                 headers={"Content-Type": "application/json"})
+                                 headers={"Content-Type": "application/json", "User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status
 
