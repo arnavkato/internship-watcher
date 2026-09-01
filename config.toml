@@ -1,0 +1,41 @@
+# Job-scraper config. Edit freely — no code changes needed.
+# Discord webhook: prefer the env var JOBS_DISCORD_WEBHOOK (keeps it out of git).
+# The value here is a fallback for local convenience only.
+discord_webhook = ""
+
+# Feeds are community-maintained internship listings.json (timestamped -> "apply first").
+# Add/remove URLs as new cycles open. All are raw GitHub JSON.
+sources = [
+  "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json",
+  "https://raw.githubusercontent.com/vanshb03/Summer2027-Internships/dev/.github/scripts/listings.json",
+]
+
+# Only listings whose terms include one of these are kept. Edit for your cycle.
+seasons = ["Summer 2027", "Fall 2026", "Winter 2027", "Spring 2027", "N/A"]
+
+# Drop a listing outright if its title contains any of these (checked first).
+exclude = [
+  "sales", "mechanical", "civil", "electrical", "hardware", "biomed",
+  "chemical", "account executive", "recruiter", "marketing", "clinical",
+  "construction", "manufacturing", "supply chain", "accounting",
+]
+
+# Priority tags, checked in order (first match wins, so quant beats swe beats data).
+# A listing matches a tag if its feed `category` is in categories OR its title
+# contains one of `include`. Title matching is why odd names like
+# "Systems Engineer" still get caught under swe.
+[priority.quant]
+categories = ["Quant", "Quantitative Finance"]
+include = ["quant", "quantitative", "trading", "trader", "systematic"]
+
+[priority.swe]
+categories = ["Software", "Software Engineering"]
+include = [
+  "software", "developer", "backend", "front end", "frontend", "full stack",
+  "fullstack", "full-stack", "systems engineer", "platform", "infrastructure",
+  "distributed", "sde", "swe", "compiler", "embedded software",
+]
+
+[priority.data]
+categories = ["AI/ML/Data", "Data Science, AI & Machine Learning"]
+include = ["machine learning", " ml ", " ai ", "data scien", "data engineer", "research scientist", "deep learning"]

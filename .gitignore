@@ -1,0 +1,7 @@
+# secret — never commit the webhook
+.env
+# local-only
+poll.log
+__pycache__/
+*.pyc
+# seen.json and listings.csv ARE committed (the Action needs them as state)
