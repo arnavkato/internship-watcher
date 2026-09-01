@@ -39,7 +39,12 @@ first run seeds silently, the next one starts alerting.
 
 ## Tuning the filter (`config.toml`)
 
-- `sources` — feed URLs; swap in new cycles (Summer2028, …) as they appear.
+- `sources` — community feed URLs; swap in new cycles (Summer2028, …) as they appear.
+- `[boards]` — direct company ATS boards (Greenhouse/Lever/Ashby), polled in
+  parallel. These catch openings within **minutes** vs the feeds' hours of lag.
+  Add a firm by dropping its slug in the matching list. Note: Google/Meta/Amazon/
+  Apple/Microsoft (and Citadel, Two Sigma, HRT, Jane St, …) use proprietary
+  portals with no public API — they can't be polled directly and arrive via the feeds.
 - `seasons` — which terms to keep (Summer 2027, Fall 2026, …).
 - `exclude` — title words that drop a listing outright (sales, mechanical, …).
 - `priority.{quant,swe,data}` — a listing is tagged if its feed `category`

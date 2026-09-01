@@ -39,3 +39,27 @@ include = [
 [priority.data]
 categories = ["AI/ML/Data", "Data Science, AI & Machine Learning"]
 include = ["machine learning", " ml ", " ai ", "data scien", "data engineer", "research scientist", "deep learning"]
+
+# Direct company ATS boards — polled alongside the feeds, but catch openings
+# within MINUTES (no community-scrape lag). Slugs below are verified live.
+# Add a firm: find its board and drop the slug in the matching list —
+#   Greenhouse: boards.greenhouse.io/<slug>   Lever: jobs.lever.co/<slug>
+#   Ashby:      jobs.ashbyhq.com/<slug>
+# NOTE: Google/Meta/Amazon/Apple/Microsoft run proprietary portals with no public
+# JSON API, so they can't be polled here — they still arrive via the feeds above.
+# Same for Citadel, Two Sigma, HRT, DRW, Optiver, SIG, DE Shaw, Jane St (own portals).
+[boards]
+greenhouse = [
+  # quant / trading
+  "jumptrading", "imc", "virtu", "point72", "akunacapital", "dvtrading", "worldquant",
+  "schonfeld", "transmarketgroup", "oldmissioncapital", "flowtraders", "pdtpartners",
+  "engineersgate", "quadraturecapital", "aqr", "mangroup", "winton", "chicagotrading",
+  "genevatrading", "exoduspoint",
+  # big tech / notable
+  "stripe", "databricks", "coinbase", "robinhood", "airbnb", "lyft", "reddit",
+  "pinterest", "instacart", "block", "datadog", "mongodb", "cloudflare", "figma",
+  "roblox", "okta", "twilio", "elastic", "gitlab", "dropbox", "brex", "affirm",
+  "sofi", "samsara", "zscaler", "scaleai", "discord", "anthropic",
+]
+lever = ["palantir", "spotify", "belvederetrading"]
+ashby = ["openai", "cohere"]

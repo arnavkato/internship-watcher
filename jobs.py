@@ -10,6 +10,7 @@ and on an ephemeral GitHub Actions runner. Pure stdlib — no pip install needed
 Discord webhook via env JOBS_DISCORD_WEBHOOK (or the field in config.toml).
 """
 import argparse, csv, json, os, time, tomllib, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,6 +40,72 @@ def post_json(url, payload):
                                  headers={"Content-Type": "application/json", "User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status
+
+
+BOARD_URL = {
+    "greenhouse": "https://boards-api.greenhouse.io/v1/boards/{}/jobs",
+    "lever": "https://api.lever.co/v0/postings/{}?mode=json",
+    "ashby": "https://api.ashbyhq.com/posting-api/job-board/{}",
+}
+_FIX = {"imc": "IMC", "drw": "DRW", "aqr": "AQR", "pdtpartners": "PDT Partners",
+        "dvtrading": "DV Trading", "tmg": "TMG", "scaleai": "Scale AI"}
+
+
+def prettify(slug):
+    return _FIX.get(slug, slug.replace("-", " ").title())
+
+
+def to_epoch(v):
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return int(v / 1000) if v > 1e12 else int(v)  # lever gives ms
+    try:
+        return int(datetime.fromisoformat(v).timestamp())
+    except ValueError:
+        return None
+
+
+def board_rows(ats, slug):
+    """Normalize one ATS board to (title, url, location, company, epoch) tuples."""
+    d = get_json(BOARD_URL[ats].format(slug))
+    if ats == "greenhouse":
+        return [(j.get("title", ""), j.get("absolute_url", ""),
+                 (j.get("location") or {}).get("name", ""),
+                 j.get("company_name") or prettify(slug),
+                 to_epoch(j.get("first_published") or j.get("updated_at")))
+                for j in d.get("jobs", [])]
+    if ats == "lever":
+        return [(j.get("text", ""), j.get("hostedUrl", ""),
+                 (j.get("categories") or {}).get("location", ""), prettify(slug),
+                 to_epoch(j.get("createdAt"))) for j in d]
+    if ats == "ashby":
+        return [(j.get("title", ""), j.get("jobUrl", ""), j.get("location", ""),
+                 prettify(slug), to_epoch(j.get("publishedAt")))
+                for j in d.get("jobs", []) if j.get("isListed", True)]
+    return []
+
+
+def board_listings(ats, slug, cfg):
+    """Internship postings from one board, filtered/classified like the feeds."""
+    try:
+        rows = board_rows(ats, slug)
+    except Exception as e:  # a dead/renamed board slug shouldn't kill the run
+        print(f"! skip board {ats}:{slug}: {e}")
+        return []
+    out = []
+    for title, url, loc, company, epoch in rows:
+        low = title.lower()
+        if "intern" not in low and "co-op" not in low:  # boards list all roles; keep interns
+            continue
+        pri = classify(title, "", cfg)  # same role filter + excludes as the feeds
+        if not pri:
+            continue
+        out.append(dict(key=f"{company}|{title}".strip().lower(), company=company,
+                        title=title.strip(), priority=pri, category="", season="",
+                        locations=loc, sponsorship="", url=url,
+                        source=f"{ats}:{slug}", date_posted=epoch, date_updated=epoch))
+    return out
 
 
 def classify(title, category, cfg):
@@ -84,7 +151,7 @@ def collect(cfg):
                 continue
             company = (r.get("company_name") or "").strip()
             title = (r.get("title") or "").strip()
-            key = f"{company}|{title}|{season}".lower()
+            key = f"{company}|{title}".lower()  # season-agnostic so feed+board dedup
             out.setdefault(key, dict(  # first source wins on dup key
                 key=key, company=company, title=title, priority=pri,
                 category=r.get("category"), season=season,
@@ -92,6 +159,14 @@ def collect(cfg):
                 sponsorship=r.get("sponsorship"), url=r.get("url"),
                 source=r.get("source"), date_posted=r.get("date_posted"),
                 date_updated=r.get("date_updated")))
+    # Direct company boards (parallel — ~50 small requests). Feeds already in `out`,
+    # so setdefault keeps the richer feed record on any company|title collision.
+    boards = cfg.get("boards", {})
+    tasks = [(ats, slug) for ats, slugs in boards.items() for slug in slugs]
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        for listings in ex.map(lambda t: board_listings(t[0], t[1], cfg), tasks):
+            for m in listings:
+                out.setdefault(m["key"], m)
     return out
 
 
@@ -122,8 +197,8 @@ def notify(new, cfg):
         embeds = [{
             "title": f"{m['title']} — {m['company']}"[:256],
             "url": m["url"],
-            "description": f"{tag.get(m['priority'], m['priority'])} · {m['season']}"
-                           f"\n📍 {m['locations'] or 'n/a'}",
+            "description": f"{tag.get(m['priority'], m['priority'])} · "
+                           f"{m['season'] or 'live board'}\n📍 {m['locations'] or 'n/a'}",
         } for m in batch]
         try:
             post_json(hook, {"content": f"**{len(batch)} new internship(s)**", "embeds": embeds})
