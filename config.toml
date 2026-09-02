@@ -60,6 +60,10 @@ greenhouse = [
   "pinterest", "instacart", "block", "datadog", "mongodb", "cloudflare", "figma",
   "roblox", "okta", "twilio", "elastic", "gitlab", "dropbox", "brex", "affirm",
   "sofi", "samsara", "zscaler", "scaleai", "discord", "anthropic",
+  # discovered from feed companies (name-verified via Greenhouse company_name)
+  "janestreet", "squarepointcapital", "towerresearchcapital", "aquaticcapitalmanagement",
+  "xantium", "spacex", "waymo", "verkada", "celonis", "epicgames", "thetradedesk",
+  "tenstorrent", "postman", "appian", "samsungresearchamerica", "workato", "helsing",
 ]
-lever = ["palantir", "spotify", "belvederetrading"]
-ashby = ["openai", "cohere"]
+lever = ["palantir", "spotify", "belvederetrading", "zoox", "hermeus"]
+ashby = ["openai", "cohere", "notion", "baseten", "modal", "etched"]

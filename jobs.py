@@ -209,10 +209,10 @@ def notify(new, cfg):
     print(f"  alerted Discord: {len(new)} listing(s).")
 
 
-def poll(cfg):
+def poll(cfg, seed=False):
     seen = json.loads(STATE.read_text()) if STATE.exists() else None
-    seeding = seen is None
-    if seeding:
+    seeding = seed or seen is None  # --seed absorbs new sources silently (no alert burst)
+    if seen is None:
         seen = {}
     matches = collect(cfg)
     new = [m for m in matches.values() if m["key"] not in seen]
@@ -222,7 +222,7 @@ def poll(cfg):
     STATE.write_text(json.dumps(seen, indent=0, sort_keys=True))
     write_csv(matches, seen)
     if seeding:
-        print(f"seeded {len(matches)} listing(s) — alerts start on the next poll.")
+        print(f"seeded {len(matches)} listing(s) ({len(new)} newly absorbed) — no alerts sent.")
     else:
         print(f"{len(new)} new matching listing(s).")
         if new:
@@ -247,10 +247,16 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("poll")
+    p = sub.add_parser("poll")
+    p.add_argument("--seed", action="store_true",
+                   help="absorb all current listings into seen.json without alerting "
+                        "(run once after adding new boards/sources)")
     sub.add_parser("selftest")
     a = ap.parse_args()
-    {"poll": lambda: poll(load_config()), "selftest": selftest}[a.cmd]()
+    if a.cmd == "poll":
+        poll(load_config(), seed=a.seed)
+    else:
+        selftest()
 
 
 if __name__ == "__main__":
