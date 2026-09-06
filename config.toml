@@ -64,6 +64,16 @@ greenhouse = [
   "janestreet", "squarepointcapital", "towerresearchcapital", "aquaticcapitalmanagement",
   "xantium", "spacex", "waymo", "verkada", "celonis", "epicgames", "thetradedesk",
   "tenstorrent", "postman", "appian", "samsungresearchamerica", "workato", "helsing",
+  # YC alumni on Greenhouse (verified live 2026-09; intern roles are seasonal so
+  # most show 0 now — the board catches Summer 2027 postings the minute they open)
+  "checkr", "flexport", "faire", "gusto", "doordashusa", "razorpaysoftwareprivatelimited",
 ]
 lever = ["palantir", "spotify", "belvederetrading", "zoox", "hermeus"]
-ashby = ["openai", "cohere", "notion", "baseten", "modal", "etched"]
+ashby = [
+  "openai", "cohere", "notion", "baseten", "modal", "etched",
+  # YC alumni on Ashby (verified live 2026-09)
+  "zapier", "airbyte", "posthog", "supabase", "replit", "mintlify", "rutter",
+  "middesk", "substack",
+  # not YC, but have Summer 2027 SWE-intern roles live right now:
+  "zip", "ramp",
+]
